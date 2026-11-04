@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.DS_Store
+*.local
+
+# Local design guidance is kept on the workstation, not shipped with the app.
+personal-design-dna/
