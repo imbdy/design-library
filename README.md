@@ -1,6 +1,6 @@
-# Liquid Atelier / Personal Design Library
+# Nordic Specimen Vault / Personal Design Library
 
-An atmospheric personal UI/UX design portfolio and library. The site presents the library itself as an in-progress piece, with a cinematic architectural backdrop, liquid-glass depth, and a fixed interactive workspace for exploring future studies without a traditional page scroll.
+A private experimental UI/UX design archive, presented as a digital exhibition: a Nordic architectural hall where every design is treated as an individual artifact — framed, labelled, and preserved.
 
 ## Run locally
 
@@ -17,13 +17,31 @@ npm run build
 
 ## Structure
 
-- `src/data/projects.js` — project content model.
-- `src/components/` — reusable shell, preview, card, detail, add-design, and icon components.
+- `src/data/projects.js` — project content model and categories.
+- `src/components/` — shell (`AppFrame`), entrance hall (`VaultScene`), artifact framing (`ArtifactFace`, `Exhibit`), inspection chamber (`InspectionView`), acquisition panel (`ArtifactPanel`), brand mark and icons.
 - `src/App.jsx` — page composition and library interactions.
 - `src/styles.css` — semantic design tokens, responsive layout, and visual language.
 
-The “Add design” flow stores the collection in the current browser's `localStorage`. It accepts an optional preview image URL and source URL; no upload service or backend is implied. The current color system is derived from the six supplied source colors: `#0A0F14`, `#0F3D3E`, `#2E6F73`, `#7FB3B8`, `#EADCC8`, and `#C6601F`.
+The collection is stored in the current browser's `localStorage` (key `liquid-atelier-projects`). The "New artifact" flow (also reachable with `Ctrl/⌘+K`) accepts a preview image URL or a local image file, and supports categories, tags, supporting images, and a source URL. No upload service or backend is implied.
+
+## Visual system
+
+Five materials carry the whole composition:
+
+- **Nordic Charcoal** `#1F2933` — the architectural foundation: walls, recesses, environment.
+- **Fjord Gray** `#6B7280` — intermediate planes, smoked glass, dimensional blocks.
+- **Cloud Gray** `#D1D5DB` — translucent partitions, mats, borders, quiet transitions.
+- **Snow Cream** `#F7F7F2` — the canvas that presents the artwork and readable content.
+- **Warm Wood** `#A68A64` — a rare, physical accent: plinths, rails, labels.
+
+Typography pairs `Archivo` (signage-grotesque) with `DM Mono` (exhibition labels). Motion is controlled — a damped pointer parallax in the entrance hall, reveal-on-arrival for rooms, and respectful treatment of `prefers-reduced-motion`.
+
+## Keyboard
+
+- `Ctrl/⌘ + K` — introduce a new artifact
+- `Esc` — leave the inspection chamber or acquisition panel
+- `← / →` — move between adjacent exhibits while inspecting
 
 ## Visual asset
 
-`public/atmosphere-interior-bright.jpg` is a locally stored [Unsplash photograph of a modern dining room with warm natural light](https://unsplash.com/photos/modern-dining-room-with-warm-natural-light-raTBX-Mo4x8), used as the bright architectural backdrop. It is softly tinted and layered beneath the interface so the portfolio content remains legible while the environment stays visible.
+The visual environment is composed in CSS 3D and SVG filters and stays lightweight; the images in `public/` are project assets and are not required for the core layout.

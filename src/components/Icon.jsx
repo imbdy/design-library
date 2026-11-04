@@ -26,7 +26,9 @@ export default function Icon({ name, size = 18, strokeWidth = 1.8 }) {
     grid: <><rect x="4" y="4" width="6" height="6" rx="1" /><rect x="14" y="4" width="6" height="6" rx="1" /><rect x="4" y="14" width="6" height="6" rx="1" /><rect x="14" y="14" width="6" height="6" rx="1" /></>,
     layers: <><path d="m12 3 8 4.5-8 4.5-8-4.5L12 3Z" /><path d="m4 12 8 4.5 8-4.5" /><path d="m4 16.5 8 4.5 8-4.5" /></>,
     external: <><path d="M14 5h5v5" /><path d="M19 5 11 13" /><path d="M19 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h4" /></>,
+    image: <><rect x="3.5" y="4.5" width="17" height="15" /><circle cx="9" cy="10" r="1.6" /><path d="m4 17 5-5 4 4 3-3 4 4" /></>,
+    frames: <><rect x="3.5" y="4.5" width="9" height="15" /><rect x="16" y="8" width="5" height="11.5" /><path d="M3.5 8h9" /></>,
   }
 
-  return <svg {...common}>{paths[name] ?? paths.sparkle}</svg>
+  return <svg {...common}>{paths[name] ?? paths.image}</svg>
 }
