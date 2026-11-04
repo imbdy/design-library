@@ -1,14 +1,14 @@
 import Icon from './Icon'
 import VisualPreview from './VisualPreview'
 
-export default function ProjectDetail({ project, onClose }) {
+export default function ProjectDetail({ project, onClose, onEdit }) {
   return (
     <div className="detail-overlay" role="dialog" aria-modal="true" aria-labelledby="detail-title">
       <div className="detail-panel">
         <div className="detail-panel__topbar">
           <button className="icon-button" onClick={onClose} aria-label="Close project detail"><Icon name="close" /></button>
-          <span>project / {project.year}</span>
-          <span className="detail-panel__status"><span /> {project.status}</span>
+          <span>artifact / {project.year}</span>
+          <div className="detail-panel__topbar-actions"><span className="detail-panel__status"><span /> {project.status}</span>{onEdit && <button className="text-link" onClick={onEdit}>Edit <Icon name="edit" size={14} /></button>}</div>
         </div>
         <div className="detail-panel__content">
           <div className="detail-panel__intro">
@@ -20,12 +20,12 @@ export default function ProjectDetail({ project, onClose }) {
               <div><span>Tools</span><strong>{project.tools.join(' · ')}</strong></div>
             </div>
           </div>
-          <VisualPreview />
+          <VisualPreview project={project} />
           <div className="detail-panel__story">
             <div className="story-label">01 / the beginning</div>
             <div>
-              <h3>A library that grows with the work.</h3>
-              {project.body.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+              <h3>{project.title} is part of the living archive.</h3>
+              {(project.body ?? [project.description]).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
             </div>
           </div>
           <div className="detail-panel__next">

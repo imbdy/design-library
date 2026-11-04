@@ -1,11 +1,11 @@
 import Icon from './Icon'
 import VisualPreview from './VisualPreview'
 
-export default function ProjectCard({ project, featured = false, onOpen }) {
+export default function ProjectCard({ project, featured = false, variant = '', onOpen }) {
   return (
-    <article className={`project-card ${featured ? 'project-card--featured' : ''}`}>
+    <article className={`project-card ${featured ? 'project-card--featured' : ''} ${variant ? `project-card--${variant}` : ''}`}>
       <button className="project-card__open" onClick={() => onOpen(project)} aria-label={`Open ${project.title}`}>
-        <VisualPreview compact={!featured} />
+        <VisualPreview compact={!featured} project={project} />
       </button>
       <div className="project-card__body">
         <div>

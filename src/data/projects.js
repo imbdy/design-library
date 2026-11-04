@@ -1,10 +1,11 @@
 export const categories = [
-  'All work',
+  'All designs',
   'Websites',
   'Dashboards',
   'Components',
   'Experiments',
   'UX explorations',
+  'Motion studies',
 ]
 
 export const projects = [
