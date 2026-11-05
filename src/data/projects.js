@@ -9,17 +9,18 @@ export const categories = [
 ]
 
 /**
- * Presentation details for each collection on the library page.
- * `motif` picks the drawn cover used until a design in the collection
- * has a preview image; `tint` picks one of three paper tones.
+ * Presentation details for each collection.
+ * `tone` is the collection's key colour: a muted paper tone used for its
+ * swatch in the index and for title plates of designs without an image.
+ * `description` is optional — add a sentence here and it appears on the plate.
  */
 export const categoryDetails = {
-  Websites: { description: 'Complete pages and sites, from first layout to launch.', motif: 'websites', tint: 'lavender' },
-  Dashboards: { description: 'Dense data, made calm and readable.', motif: 'dashboards', tint: 'sand' },
-  Components: { description: 'Buttons, inputs, cards and their states.', motif: 'components', tint: 'pearl' },
-  Experiments: { description: 'Ideas tried before they’re certain.', motif: 'experiments', tint: 'pearl' },
-  'UX explorations': { description: 'Flows and the reasoning behind them.', motif: 'flows', tint: 'sand' },
-  'Motion studies': { description: 'Timing, easing and transitions, studied on their own.', motif: 'motion', tint: 'lavender' },
+  Websites: { tone: 'mist', description: '' },
+  Dashboards: { tone: 'sage', description: '' },
+  Components: { tone: 'oat', description: '' },
+  Experiments: { tone: 'clay', description: '' },
+  'UX explorations': { tone: 'lilac', description: '' },
+  'Motion studies': { tone: 'straw', description: '' },
 }
 
 export const categorySlug = (category) => category.toLowerCase().replace(/\s+/g, '-')
