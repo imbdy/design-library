@@ -70,6 +70,19 @@ img { display: block; }
 ::selection { background: var(--wood); color: var(--charcoal); }
 :focus-visible { outline: 1px solid var(--wood); outline-offset: 3px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+.skip-link {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 100;
+  padding: 9px 12px;
+  border: 1px solid var(--wood);
+  color: var(--charcoal);
+  background: var(--snow);
+  transform: translateY(-160%);
+  transition: transform .2s var(--ease-vault);
+}
+.skip-link:focus { transform: translateY(0); }
 
 /* ---------- exhibition typography ---------- */
 .sig {                                   /* signage label — DM Mono */
@@ -462,7 +475,7 @@ img { display: block; }
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(247, 247, 242, .8), transparent);
 }
-.vault-topbar__index button {
+.vault-topbar__index a {
   position: relative;
   z-index: 1;
   display: inline-flex;
@@ -474,18 +487,19 @@ img { display: block; }
   letter-spacing: .01em;
   text-transform: none;
   color: rgba(209, 213, 219, .85);
+  text-decoration: none;
   transition: color .25s ease, transform .3s var(--ease-vault);
 }
-.vault-topbar__index button i {
+.vault-topbar__index a i {
   font-style: normal;
   font-family: var(--font-label);
   font-size: 8px;
   letter-spacing: .04em;
   color: var(--wood);
 }
-.vault-topbar__index button:hover { color: var(--snow); }
-.vault-topbar__index button:hover { transform: translateY(-1px); }
-.vault-topbar__index button.is-active { color: var(--snow); }
+.vault-topbar__index a:hover { color: var(--snow); }
+.vault-topbar__index a:hover { transform: translateY(-1px); }
+.vault-topbar__index a.is-active { color: var(--snow); }
 .vault-topbar__new:hover { border-color: var(--wood); background: var(--snow-glass); }
 .vault-topbar__new:hover svg { transform: rotate(90deg); }
 .vault-topbar__new kbd {
@@ -1747,8 +1761,8 @@ img { display: block; }
   .vault-topbar { width: calc(100% - 32px); margin: 14px 16px 0; gap: 14px; }
   .vault-topbar__divider { margin-inline: 8px; }
   .vault-topbar__theme { flex: 0 0 auto; }
-  .vault-topbar__index button { padding: 10px 10px; }
-  .vault-topbar__index button span { display: none; }
+  .vault-topbar__index a { padding: 10px 10px; }
+  .vault-topbar__index a span { display: inline; }
   .nav-lens { height: 38px; }
   .gallery-strip { top: 88px; }
 }
@@ -1760,6 +1774,8 @@ img { display: block; }
   .vault-topbar__brand { gap: 9px; }
   .vault-topbar__brand strong { font-size: 9.5px; }
   .vault-topbar__brand small, .vault-topbar__divider { display: none; }
+  .vault-topbar__index { display: none; }
+  .vault-topbar__side { margin-left: auto; }
   .vault-topbar__theme { height: 32px; padding-inline: 7px; }
   .vault-topbar__new { display: none; }
   .vault-topbar__status { display: none; }

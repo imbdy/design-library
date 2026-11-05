@@ -13,6 +13,8 @@ export default function AppFrame({ active, onNavigate, mobileOpen, setMobileOpen
   const navRef = useRef(null)
   const lensRef = useRef(null)
   const itemRefs = useRef({})
+  const menuButtonRef = useRef(null)
+  const mobileNavRef = useRef(null)
   const [softLight, setSoftLight] = useState(false)
 
   /* position the glass lens under a level button */
@@ -35,6 +37,19 @@ export default function AppFrame({ active, onNavigate, mobileOpen, setMobileOpen
     document.fonts?.ready?.then(() => placeLens(itemRefs.current[active]))
     return () => window.removeEventListener('resize', onResize)
   }, [active])
+
+  useEffect(() => {
+    if (!mobileOpen) return undefined
+    const firstLink = mobileNavRef.current?.querySelector('a')
+    const frame = requestAnimationFrame(() => firstLink?.focus())
+    const onKeyDown = (event) => {
+      if (event.key !== 'Escape') return
+      setMobileOpen(false)
+      requestAnimationFrame(() => menuButtonRef.current?.focus())
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => { cancelAnimationFrame(frame); document.removeEventListener('keydown', onKeyDown) }
+  }, [mobileOpen, setMobileOpen])
 
   /* ambient pointer — hall parallax */
   useEffect(() => {
@@ -74,9 +89,15 @@ export default function AppFrame({ active, onNavigate, mobileOpen, setMobileOpen
     nav?.style.setProperty('--nx', '0.5')
     nav?.style.setProperty('--ny', '0.5')
   }
+  const chooseMobile = (id) => {
+    onNavigate(id)
+    setMobileOpen(false)
+    requestAnimationFrame(() => menuButtonRef.current?.focus())
+  }
 
   return (
     <div className={`vault-shell ${softLight ? 'vault-shell--soft-lit' : ''}`} ref={shellRef}>
+      <a className="skip-link" href="#main-content">Skip to content</a>
       {/* vertical exhibition index */}
       <aside className="vault-rail" aria-hidden="true">
         <span className="vault-rail__mark"><i>SV</i></span>
@@ -108,15 +129,18 @@ export default function AppFrame({ active, onNavigate, mobileOpen, setMobileOpen
             <span className="nav-lens__tilt"><span className="nav-lens__core" /></span>
           </span>
           {NAV.map((item) => (
-            <button
+            <a
               key={item.id}
               ref={(node) => (itemRefs.current[item.id] = node)}
               className={active === item.id ? 'is-active' : ''}
+              href={`#${item.id}`}
+              aria-current={active === item.id ? 'page' : undefined}
               onMouseEnter={() => placeLens(itemRefs.current[item.id])}
-              onClick={() => onNavigate(item.id)}
+              onFocus={() => placeLens(itemRefs.current[item.id])}
+              onClick={(event) => { event.preventDefault(); onNavigate(item.id) }}
             >
               <span>{item.label}</span>
-            </button>
+            </a>
           ))}
         </nav>
         <div className="vault-topbar__side">
@@ -126,19 +150,19 @@ export default function AppFrame({ active, onNavigate, mobileOpen, setMobileOpen
             Get started
             <kbd>⌘K</kbd>
           </button>
-          <button className="menu-btn" onClick={() => setMobileOpen(!mobileOpen)} aria-expanded={mobileOpen} aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'}>
+          <button ref={menuButtonRef} className="menu-btn" onClick={() => setMobileOpen(!mobileOpen)} aria-expanded={mobileOpen} aria-controls="vault-mobile-nav" aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'}>
             <Icon name={mobileOpen ? 'close' : 'menu'} />
           </button>
         </div>
       </header>
 
       {mobileOpen && (
-        <div className="nav-sheet" role="dialog" aria-label="Navigation">
+        <nav className="nav-sheet" id="vault-mobile-nav" ref={mobileNavRef} aria-label="Exhibition levels">
           {NAV.map((item) => (
-            <button key={item.id} className={`nav-sheet__item ${active === item.id ? 'is-active' : ''}`} onClick={() => onNavigate(item.id)}>
+            <a key={item.id} className={`nav-sheet__item ${active === item.id ? 'is-active' : ''}`} href={`#${item.id}`} aria-current={active === item.id ? 'page' : undefined} onClick={(event) => { event.preventDefault(); chooseMobile(item.id) }}>
               {item.label}
               <i>{item.index}</i>
-            </button>
+            </a>
           ))}
           <div className="nav-sheet__foot">
             <button className="vault-btn vault-btn--wood" onClick={() => { setMobileOpen(false); onAdd() }}>
@@ -146,10 +170,10 @@ export default function AppFrame({ active, onNavigate, mobileOpen, setMobileOpen
             </button>
             <span className="sig sig--dim">stored locally in this browser</span>
           </div>
-        </div>
+        </nav>
       )}
 
-      <main>{children}</main>
+      <main id="main-content" tabIndex="-1">{children}</main>
 
       <footer className="vault-foot">
         <span><strong>Nordic specimen vault</strong></span>
