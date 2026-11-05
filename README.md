@@ -1,6 +1,6 @@
-# Nordic Specimen Vault / Personal Design Library
+# My Design Library
 
-A private experimental UI/UX design archive, presented as a digital exhibition: a Nordic architectural hall where every design is treated as an individual artifact — framed, labelled, and preserved.
+A personal archive of interface studies, experiments, and design work by Abdallah Obeidat — presented like a quiet, sunlit reading room: collections on paper, one glass navigation bar, and an About page that closes the catalogue.
 
 ## Run locally
 
@@ -17,31 +17,29 @@ npm run build
 
 ## Structure
 
-- `src/data/projects.js` — project content model and categories.
-- `src/components/` — shell (`AppFrame`), entrance hall (`VaultScene`), artifact framing (`ArtifactFace`, `Exhibit`), inspection chamber (`InspectionView`), acquisition panel (`ArtifactPanel`), brand mark and icons.
-- `src/App.jsx` — page composition and library interactions.
-- `src/styles.css` — semantic design tokens, responsive layout, and visual language.
+- `src/data/projects.js` — categories, per-collection presentation (`categoryDetails`: description, cover motif, tint), and the seed projects.
+- `src/data/profile.js` — name, About copy, and contact links. A link with an empty `href` is hidden.
+- `src/components/`
+  - `AppFrame` — floating glass navigation (Library / About) with a sliding active tab.
+  - `CategoryCard`, `CategoryCover` — the collection shelf and its drawn SVG covers (replaced by a design's preview image once one exists).
+  - `DesignCard`, `ArtifactFace` — designs inside a collection.
+  - `InspectionView` — design detail dialog (`Esc`, `←` / `→`).
+  - `ArtifactPanel` — add / edit a design.
+  - `AboutSection` — about, contact and colophon.
+- `src/App.jsx` — page composition, collection drill-down, search / sort, persistence.
+- `src/styles.css` — tokens, layout, and responsive rules.
 
-The collection is stored in the current browser's `localStorage` (key `liquid-atelier-projects`). The "New artifact" flow (also reachable with `Ctrl/⌘+K`) accepts a preview image URL or a local image file, and supports categories, tags, supporting images, and a source URL. No upload service or backend is implied.
+Opening a collection updates the URL (`#collection/websites`, `#collection/all`), so the browser's back button returns to the shelf and collections can be linked directly.
+
+The collection is stored in the current browser's `localStorage` (key `liquid-atelier-projects`). "Add design" (also `Ctrl/⌘ + K`) accepts a preview image URL or a local image file, plus collection, tags, supporting images, and a source URL. No backend is involved.
 
 ## Visual system
 
-Five materials carry the whole composition:
+- **Paper** `#F6F3EC` page, `#FCFBF7` surfaces, **sand** `#ECE5D8` for the About sheet.
+- **Ink** `#22202E` text, `#5F5A70` secondary text (≥ 4.5:1 on every surface).
+- **Iris** `#5A549E` — the single accent: active states, focus rings, counts, links.
+- Cover tints from one family: lavender `#E6E3F1`, sand `#EEE6D8`, pearl `#E7E7EB`.
 
-- **Nordic Charcoal** `#1F2933` — the architectural foundation: walls, recesses, environment.
-- **Fjord Gray** `#6B7280` — intermediate planes, smoked glass, dimensional blocks.
-- **Cloud Gray** `#D1D5DB` — translucent partitions, mats, borders, quiet transitions.
-- **Snow Cream** `#F7F7F2` — the canvas that presents the artwork and readable content.
-- **Warm Wood** `#A68A64` — a rare, physical accent: plinths, rails, labels.
+Typography pairs **Newsreader** (display, with its italic for emphasis) with **Hanken Grotesk** (interface and body). Glass is used only for the navigation. Motion is limited to hover lift, view fades, and the nav indicator, and is disabled under `prefers-reduced-motion`.
 
-Typography pairs `Archivo` (signage-grotesque) with `DM Mono` (exhibition labels). Motion is controlled — a damped pointer parallax in the entrance hall, reveal-on-arrival for rooms, and respectful treatment of `prefers-reduced-motion`.
-
-## Keyboard
-
-- `Ctrl/⌘ + K` — introduce a new artifact
-- `Esc` — leave the inspection chamber or acquisition panel
-- `← / →` — move between adjacent exhibits while inspecting
-
-## Visual asset
-
-The visual environment is composed in CSS 3D and SVG filters and stays lightweight; the images in `public/` are project assets and are not required for the core layout.
+On desktop the library overview is composed to fit one viewport (≥ 900 × 700); on mobile the collections become a scrollable index.

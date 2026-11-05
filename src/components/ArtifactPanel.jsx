@@ -20,8 +20,8 @@ function toFormValues(project) {
 }
 
 /**
- * The acquisition process — introduce a new exhibit into the archive
- * (or refine an existing record). Same field contract as before.
+ * Add a new design to the library, or edit an existing record.
+ * Records are stored in this browser only (localStorage).
  */
 export default function ArtifactPanel({ project, onClose, onSave }) {
   const [values, setValues] = useState(() => toFormValues(project))
@@ -29,6 +29,11 @@ export default function ArtifactPanel({ project, onClose, onSave }) {
   const [fileName, setFileName] = useState('')
 
   useEffect(() => { setValues(toFormValues(project)); setFileName(''); setError('') }, [project])
+
+  useEffect(() => {
+    const opener = document.activeElement
+    return () => { if (opener instanceof HTMLElement && document.contains(opener)) opener.focus({ preventScroll: true }) }
+  }, [])
 
   useEffect(() => {
     const onKey = (event) => { if (event.key === 'Escape') onClose() }
@@ -49,51 +54,49 @@ export default function ArtifactPanel({ project, onClose, onSave }) {
 
   const handleSubmit = (event) => {
     event.preventDefault()
-    if (!values.title.trim() || !values.description.trim()) { setError('Give the piece a title and a short description before saving.'); return }
+    if (!values.title.trim() || !values.description.trim()) { setError('Give the design a title and a short description before saving.'); return }
     const fallbackId = `design-${Date.now()}`
-    onSave({ ...(project ?? {}), id: project?.id ?? fallbackId, title: values.title.trim(), eyebrow: project?.eyebrow ?? 'New exhibit', description: values.description.trim(), categories: [values.category], tags: values.tags.split(',').map((tag) => tag.trim()).filter(Boolean), status: project?.status ?? 'Draft', year: values.year.trim() || String(new Date().getFullYear()), role: project?.role ?? 'Personal study', tools: project?.tools ?? ['Added in vault'], body: project?.body ?? [values.description.trim()], imageUrl: values.imageUrl.trim(), supportingImages: values.supportingImages.split(',').map((image) => image.trim()).filter(Boolean), sourceUrl: values.sourceUrl.trim() })
+    onSave({ ...(project ?? {}), id: project?.id ?? fallbackId, title: values.title.trim(), eyebrow: project?.eyebrow ?? 'New design', description: values.description.trim(), categories: [values.category], tags: values.tags.split(',').map((tag) => tag.trim()).filter(Boolean), status: project?.status ?? 'Draft', year: values.year.trim() || String(new Date().getFullYear()), role: project?.role ?? 'Personal study', tools: project?.tools ?? [], body: project?.body ?? [values.description.trim()], imageUrl: values.imageUrl.trim(), supportingImages: values.supportingImages.split(',').map((image) => image.trim()).filter(Boolean), sourceUrl: values.sourceUrl.trim() })
   }
 
   const availableCategories = categories.filter((category) => category !== 'All designs')
   const preview = {
-    title: values.title.trim() || 'Untitled artifact',
+    title: values.title.trim() || 'Untitled design',
     categories: [values.category],
     year: values.year.trim(),
     imageUrl: values.imageUrl,
-    tags: values.tags.split(',').map((tag) => tag.trim()).filter(Boolean),
   }
 
   return (
-    <div className="forge-overlay">
-      <div className="forge">
-        {/* installation side — the artifact as it will hang */}
-        <div className="forge__stage">
-          <div className="forge__intro">
-            <span className="sig sig--wood">{project ? 'Revising the record / edit mode' : 'Acquisition / incoming exhibit'}</span>
-            <h2>{project ? <>Return to the <em>record.</em></> : <>Introduce a new <em>exhibit.</em></>}</h2>
-            <p>A small, honest record is enough to begin. Hang a preview now, or keep the piece text-only until the image is ready.</p>
+    <div className="overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
+      <div className="panel" role="dialog" aria-modal="true" aria-labelledby="panel-title">
+        <div className="panel__stage">
+          <p className="eyebrow">{project ? 'Edit design' : 'New design'}</p>
+          <h2 id="panel-title" className="display display--panel">
+            {project ? <>Update <em>the record</em></> : <>Add a design to <em>the library</em></>}
+          </h2>
+          <p className="panel__hint">A title and a short description are enough to begin. Add a preview now, or later when it’s ready.</p>
+          <div className="panel__preview">
+            <ArtifactFace project={preview} />
+            <span className="panel__preview-title">{preview.title}</span>
+            <span className="panel__preview-meta">{values.category}{preview.year ? ` — ${preview.year}` : ''}</span>
           </div>
-          <div className="forge__plinth">
-            <ArtifactFace project={preview} compact />
-          </div>
-          <span className="forge__hint">live preview · displayed on a museum plinth</span>
         </div>
 
-        {/* record side */}
-        <form className="forge__form" onSubmit={handleSubmit}>
-          <div className="forge__bar">
-            <span>{project ? `Editing — ${project.title}` : 'New specimen record'}</span>
-            <button className="icon-btn" type="button" onClick={onClose} aria-label="Close the acquisition panel"><Icon name="close" size={16} /></button>
+        <form className="panel__form" onSubmit={handleSubmit} noValidate>
+          <div className="panel__bar">
+            <span>{project ? `Editing “${project.title}”` : 'Design details'}</span>
+            <button className="icon-btn" type="button" onClick={onClose} aria-label="Close without saving"><Icon name="close" size={16} /></button>
           </div>
 
-          <div className="forge__body">
+          <div className="panel__body">
             <div className="form-grid">
               <label className="field full">
-                <span>Title <b>*</b></span>
+                <span>Title <b>required</b></span>
                 <input autoFocus value={values.title} onChange={update('title')} placeholder="e.g. A quieter settings screen" />
               </label>
               <label className="field">
-                <span>Category</span>
+                <span>Collection</span>
                 <select value={values.category} onChange={update('category')}>
                   {availableCategories.map((category) => <option key={category}>{category}</option>)}
                 </select>
@@ -103,8 +106,8 @@ export default function ArtifactPanel({ project, onClose, onSave }) {
                 <input value={values.year} onChange={update('year')} inputMode="numeric" />
               </label>
               <label className="field full">
-                <span>Description <b>*</b></span>
-                <textarea value={values.description} onChange={update('description')} placeholder="What is this piece exploring?" rows="4" />
+                <span>Description <b>required</b></span>
+                <textarea value={values.description} onChange={update('description')} placeholder="What is this design exploring?" rows="3" />
               </label>
               <label className="field full">
                 <span>Tags <b>comma separated</b></span>
@@ -117,11 +120,11 @@ export default function ArtifactPanel({ project, onClose, onSave }) {
               <div className="field full">
                 <span>Or attach a file <b>from this device</b></span>
                 <div className="pick-row">
-                  <label>
+                  <label className="btn btn--quiet">
                     <input type="file" accept="image/*" onChange={handleFile} />
-                    <Icon name="image" size={13} /> Choose from device
+                    <Icon name="image" size={14} /> Choose image
                   </label>
-                  <small>{fileName || (values.imageUrl.startsWith('data:') ? 'Local image attached' : 'no file attached')}</small>
+                  <small>{fileName || (values.imageUrl.startsWith('data:') ? 'Local image attached' : 'No file attached')}</small>
                 </div>
               </div>
               <label className="field full">
@@ -134,19 +137,16 @@ export default function ArtifactPanel({ project, onClose, onSave }) {
               </label>
             </div>
 
-            <div className="form-note">
-              <Icon name="layers" size={15} />
-              <span>Saved to this browser only. Local image files are stored inside this record.</span>
-            </div>
+            <p className="form-note"><Icon name="layers" size={15} /> Saved in this browser only. Attached image files are stored inside the record.</p>
             {error && <p className="form-error" role="alert">{error}</p>}
           </div>
 
-          <div className="forge__foot">
-            <small>⌘K reopens this panel at any time</small>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button className="vault-btn vault-btn--ghost" type="button" onClick={onClose}>Cancel</button>
-              <button className="vault-btn vault-btn--snow" type="submit">
-                {project ? 'Save changes' : 'Install the exhibit'} <Icon name="arrowUpRight" size={15} />
+          <div className="panel__foot">
+            <small>Ctrl/⌘ K opens this panel</small>
+            <div className="panel__actions">
+              <button className="btn btn--quiet" type="button" onClick={onClose}>Cancel</button>
+              <button className="btn btn--ink" type="submit">
+                {project ? 'Save changes' : 'Add to library'} <Icon name="check" size={15} />
               </button>
             </div>
           </div>

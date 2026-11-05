@@ -1,187 +1,79 @@
-import { useEffect, useRef, useState } from 'react'
-import BrandMark from './BrandMark'
-import Icon from './Icon'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { profile } from '../data/profile'
 
 const NAV = [
-  { id: 'entrance', label: 'Entrance', index: '01' },
-  { id: 'collection', label: 'Collection', index: '02' },
-  { id: 'rooms', label: 'Rooms', index: '03' },
+  { id: 'library', label: 'Library' },
+  { id: 'about', label: 'About' },
 ]
 
-export default function AppFrame({ active, onNavigate, mobileOpen, setMobileOpen, onAdd, children }) {
-  const shellRef = useRef(null)
-  const navRef = useRef(null)
-  const lensRef = useRef(null)
+/**
+ * Page shell: a floating glass navigation pill and the main landmark.
+ * The active item is marked by a small paper "tab" that slides between links.
+ */
+export default function AppFrame({ active, onNavigate, children }) {
+  const linksRef = useRef(null)
+  const indicatorRef = useRef(null)
   const itemRefs = useRef({})
-  const menuButtonRef = useRef(null)
-  const mobileNavRef = useRef(null)
-  const [softLight, setSoftLight] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
 
-  /* position the glass lens under a level button */
-  const placeLens = (btn) => {
-    const lens = lensRef.current
-    const nav = navRef.current
-    if (!lens || !nav || !btn) return
-    const nr = nav.getBoundingClientRect()
-    const br = btn.getBoundingClientRect()
-    lens.style.width = `${br.width - 12}px`
-    lens.style.height = `${br.height - 12}px`
-    lens.style.transform = `translate(${br.left - nr.left + 6}px, ${br.top - nr.top + 6}px)`
-  }
-
-  /* the active level drives the glass lens */
-  useEffect(() => {
-    placeLens(itemRefs.current[active])
-    const onResize = () => placeLens(itemRefs.current[active])
-    window.addEventListener('resize', onResize)
-    document.fonts?.ready?.then(() => placeLens(itemRefs.current[active]))
-    return () => window.removeEventListener('resize', onResize)
+  const placeIndicator = useCallback(() => {
+    const indicator = indicatorRef.current
+    const links = linksRef.current
+    const item = itemRefs.current[active]
+    if (!indicator || !links || !item) return
+    const lr = links.getBoundingClientRect()
+    const ir = item.getBoundingClientRect()
+    indicator.style.width = `${ir.width}px`
+    indicator.style.transform = `translateX(${ir.left - lr.left}px)`
   }, [active])
 
-  useEffect(() => {
-    if (!mobileOpen) return undefined
-    const firstLink = mobileNavRef.current?.querySelector('a')
-    const frame = requestAnimationFrame(() => firstLink?.focus())
-    const onKeyDown = (event) => {
-      if (event.key !== 'Escape') return
-      setMobileOpen(false)
-      requestAnimationFrame(() => menuButtonRef.current?.focus())
-    }
-    document.addEventListener('keydown', onKeyDown)
-    return () => { cancelAnimationFrame(frame); document.removeEventListener('keydown', onKeyDown) }
-  }, [mobileOpen, setMobileOpen])
+  useLayoutEffect(() => {
+    placeIndicator()
+    window.addEventListener('resize', placeIndicator)
+    document.fonts?.ready?.then(placeIndicator)
+    return () => window.removeEventListener('resize', placeIndicator)
+  }, [placeIndicator])
 
-  /* ambient pointer — hall parallax */
   useEffect(() => {
-    const shell = shellRef.current
-    if (!shell) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    let frame = 0
-    const update = (event) => {
-      cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(() => {
-        const x = (event.clientX / window.innerWidth) * 100
-        const y = (event.clientY / window.innerHeight) * 100
-        shell.style.setProperty('--px', x.toFixed(2))
-        shell.style.setProperty('--py', y.toFixed(2))
-        shell.querySelector('.hall-light')?.style.setProperty('--lx', x.toFixed(2) + '%')
-        shell.querySelector('.hall-light')?.style.setProperty('--ly', y.toFixed(2) + '%')
-      })
-    }
-    window.addEventListener('pointermove', update, { passive: true })
-    return () => { cancelAnimationFrame(frame); window.removeEventListener('pointermove', update) }
+    const onScroll = () => setScrolled(window.scrollY > 8)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const tiltLens = (event) => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const nav = navRef.current
-    if (!nav) return
-    const r = nav.getBoundingClientRect()
-    nav.style.setProperty('--nx', ((event.clientX - r.left) / r.width).toFixed(3))
-    nav.style.setProperty('--ny', ((event.clientY - r.top) / r.height).toFixed(3))
-  }
-  const settleLens = () => {
-    untiltLens()
-    placeLens(itemRefs.current[active])
-  }
-  const untiltLens = () => {
-    const nav = navRef.current
-    nav?.style.setProperty('--nx', '0.5')
-    nav?.style.setProperty('--ny', '0.5')
-  }
-  const chooseMobile = (id) => {
-    onNavigate(id)
-    setMobileOpen(false)
-    requestAnimationFrame(() => menuButtonRef.current?.focus())
-  }
-
   return (
-    <div className={`vault-shell ${softLight ? 'vault-shell--soft-lit' : ''}`} ref={shellRef}>
+    <div className="shell">
       <a className="skip-link" href="#main-content">Skip to content</a>
-      {/* vertical exhibition index */}
-      <aside className="vault-rail" aria-hidden="true">
-        <span className="vault-rail__mark"><i>SV</i></span>
-        <span className="vault-rail__title">Specimen vault — exhibition levels</span>
-        <span className="vault-rail__steps">
-          {NAV.map((item) => (
-            <span key={item.id} className={active === item.id ? 'is-active' : ''} />
-          ))}
-        </span>
-      </aside>
 
-      {/* floating liquid-glass index slab */}
-      <header className="vault-topbar">
-        <span className="vault-topbar__glare" aria-hidden="true" />
-        <a className="vault-topbar__brand" href="#entrance" onClick={(event) => { event.preventDefault(); onNavigate('entrance') }} aria-label="Nordic Specimen Vault, entrance level">
-          <BrandMark />
-          <strong>Nordic Specimen Vault</strong>
-          <small>private design archive</small>
-        </a>
-        <span className="vault-topbar__divider" aria-hidden="true" />
-        <nav
-          className="vault-topbar__index"
-          aria-label="Exhibition levels"
-          ref={navRef}
-          onMouseMove={tiltLens}
-          onMouseLeave={settleLens}
+      <header className={`nav ${scrolled ? 'is-scrolled' : ''}`}>
+        <a
+          className="nav__brand"
+          href="#library"
+          onClick={(event) => { event.preventDefault(); onNavigate('library') }}
         >
-          <span className="nav-lens" ref={lensRef} aria-hidden="true">
-            <span className="nav-lens__tilt"><span className="nav-lens__core" /></span>
-          </span>
+          <span className="nav__mark" aria-hidden="true">{profile.initials}</span>
+          <span className="nav__name">{profile.name}</span>
+          <span className="sr-only">, design library home</span>
+        </a>
+        <span className="nav__divider" aria-hidden="true" />
+        <nav className="nav__links" aria-label="Primary" ref={linksRef}>
+          <span className="nav__indicator" ref={indicatorRef} aria-hidden="true" />
           {NAV.map((item) => (
             <a
               key={item.id}
-              ref={(node) => (itemRefs.current[item.id] = node)}
-              className={active === item.id ? 'is-active' : ''}
+              ref={(node) => { itemRefs.current[item.id] = node }}
+              className={`nav__link ${active === item.id ? 'is-active' : ''}`}
               href={`#${item.id}`}
-              aria-current={active === item.id ? 'page' : undefined}
-              onMouseEnter={() => placeLens(itemRefs.current[item.id])}
-              onFocus={() => placeLens(itemRefs.current[item.id])}
+              aria-current={active === item.id ? 'true' : undefined}
               onClick={(event) => { event.preventDefault(); onNavigate(item.id) }}
             >
-              <span>{item.label}</span>
+              {item.label}
             </a>
           ))}
         </nav>
-        <div className="vault-topbar__side">
-          <button className="vault-topbar__theme" onClick={() => setSoftLight((current) => !current)} aria-pressed={softLight} aria-label={softLight ? 'Restore full ambient light' : 'Soften ambient light'}><span>☼</span><i /><span>◐</span></button>
-          <button className="vault-topbar__new" onClick={onAdd}>
-            <Icon name="plus" size={14} />
-            Get started
-            <kbd>⌘K</kbd>
-          </button>
-          <button ref={menuButtonRef} className="menu-btn" onClick={() => setMobileOpen(!mobileOpen)} aria-expanded={mobileOpen} aria-controls="vault-mobile-nav" aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'}>
-            <Icon name={mobileOpen ? 'close' : 'menu'} />
-          </button>
-        </div>
       </header>
 
-      {mobileOpen && (
-        <nav className="nav-sheet" id="vault-mobile-nav" ref={mobileNavRef} aria-label="Exhibition levels">
-          {NAV.map((item) => (
-            <a key={item.id} className={`nav-sheet__item ${active === item.id ? 'is-active' : ''}`} href={`#${item.id}`} aria-current={active === item.id ? 'page' : undefined} onClick={(event) => { event.preventDefault(); chooseMobile(item.id) }}>
-              {item.label}
-              <i>{item.index}</i>
-            </a>
-          ))}
-          <div className="nav-sheet__foot">
-            <button className="vault-btn vault-btn--wood" onClick={() => { setMobileOpen(false); onAdd() }}>
-              <Icon name="plus" size={15} /> New artifact
-            </button>
-            <span className="sig sig--dim">stored locally in this browser</span>
-          </div>
-        </nav>
-      )}
-
       <main id="main-content" tabIndex="-1">{children}</main>
-
-      <footer className="vault-foot">
-        <span><strong>Nordic specimen vault</strong></span>
-        <span>an exhibition of interface studies</span>
-        <span>63°N / fjord light</span>
-        <span className="sig--wood">collection preserved locally</span>
-        <button onClick={() => onNavigate('rooms')}>about the archive <Icon name="arrowUpRight" size={12} /></button>
-      </footer>
     </div>
   )
 }

@@ -1,15 +1,22 @@
 import { useEffect, useRef } from 'react'
+import ArtifactFace from './ArtifactFace'
 import Icon from './Icon'
 
 /**
- * Inspection chamber — the selected artifact occupies a wall of its own;
- * the room around it recedes. Keyboard: Escape left/ArrowRight/ArrowLeft.
+ * Detail view for a single design. Keyboard: Escape closes, ← / → move
+ * between neighbouring designs in the current collection.
  */
-export default function InspectionView({ project, number, onClose, onPrevious, onNext, onEdit, onDelete }) {
+export default function InspectionView({ project, number, total, onClose, onPrevious, onNext, onEdit, onDelete }) {
   const closeRef = useRef(null)
 
+  /* focus the close button on open; give focus back to whatever opened us */
   useEffect(() => {
+    const opener = document.activeElement
     closeRef.current?.focus({ preventScroll: true })
+    return () => { if (opener instanceof HTMLElement && document.contains(opener)) opener.focus({ preventScroll: true }) }
+  }, [])
+
+  useEffect(() => {
     const onKey = (event) => {
       if (event.key === 'Escape') { event.preventDefault(); onClose() }
       else if (event.key === 'ArrowLeft') onPrevious?.()
@@ -19,94 +26,71 @@ export default function InspectionView({ project, number, onClose, onPrevious, o
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose, onPrevious, onNext])
 
-  const categoryLabel = project.categories?.[0] ?? 'Interface study'
+  const extraParagraphs = Array.isArray(project.body) ? project.body.filter((p) => p && p !== project.description) : []
 
   return (
-    <div className="inspect-overlay">
-      <div className="inspect" role="dialog" aria-modal="true" aria-labelledby="inspect-title">
-        <button ref={closeRef} className="inspect__close" onClick={onClose} aria-label="Close inspection, return to collection">
-          <Icon name="close" />
+    <div className="overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
+      <div className="detail" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+        <button ref={closeRef} type="button" className="icon-btn detail__close" onClick={onClose} aria-label="Close and return to the collection">
+          <Icon name="close" size={18} />
         </button>
 
-        {/* the wall the artifact rests on */}
-        <section className="inspect__stage">
-          <div className="inspect__wall">
-            <div className="inspect__art">
-              {project.imageUrl ? (
-                <img src={project.imageUrl} alt={`Full view of ${project.title}`} />
-              ) : (
-                <div className="artifact__specimen">
-                  <span className="rule-wood" />
-                  <h4>{project.title}</h4>
-                  <span className="artifact__tags">{categoryLabel} · {project.year ?? ''}</span>
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="inspect__plate">
-            <b>{String(number).padStart(2, '0')} / {categoryLabel}</b>
-            <span>specimen {project.year ?? ''}</span>
-          </div>
+        <section className="detail__stage" aria-label="Preview">
+          {project.imageUrl
+            ? <img className="detail__img" src={project.imageUrl} alt={`Preview of ${project.title}`} />
+            : <ArtifactFace project={project} className="detail__face" />}
         </section>
 
-        {/* quiet label surface */}
-        <aside className="inspect__side">
-          <div className="inspect__id">
-            <span className="sig sig--wood">{project.eyebrow ?? 'Exhibit'}</span>
-            <h2 id="inspect-title">{project.title}</h2>
+        <div className="detail__side">
+          <div className="detail__id">
+            <p className="eyebrow">{project.eyebrow ?? 'Design'}{total > 1 ? ` · ${number} of ${total}` : ''}</p>
+            <h2 id="detail-title" className="display display--detail">{project.title}</h2>
           </div>
 
-          <div className="inspect__meta">
-            <div><span>Category</span><b>{project.categories?.join(' · ') || 'Unfiled'}</b></div>
-            <div><span>Year</span><b>{project.year ?? '—'}</b></div>
-            <div><span>State</span><b>{project.status ?? 'Saved locally'}</b></div>
-            {project.tools?.length > 0 && <div><span>Tools</span><b>{project.tools.join(' · ')}</b></div>}
-            {project.role && <div><span>Role</span><b>{project.role}</b></div>}
-          </div>
+          <p className="detail__desc">{project.description}</p>
+          {extraParagraphs.map((paragraph) => <p key={paragraph} className="detail__desc detail__desc--more">{paragraph}</p>)}
 
-          <p className="inspect__desc">{project.description}</p>
-          {Array.isArray(project.body) && project.body.length > 0 && project.body.some((p) => p !== project.description) && (
-            <div>
-              {project.body.filter((p) => p !== project.description).map((paragraph) => (
-                <p key={paragraph} className="inspect__desc" style={{ marginTop: 12 }}>{paragraph}</p>
-              ))}
-            </div>
+          <dl className="facts facts--detail">
+            <div><dt>Collection</dt><dd>{project.categories?.join(' · ') || 'Unfiled'}</dd></div>
+            <div><dt>Year</dt><dd>{project.year ?? '—'}</dd></div>
+            <div><dt>Status</dt><dd>{project.status ?? 'Saved locally'}</dd></div>
+            {project.role && <div><dt>Role</dt><dd>{project.role}</dd></div>}
+            {project.tools?.length > 0 && <div><dt>Tools</dt><dd>{project.tools.join(' · ')}</dd></div>}
+          </dl>
+
+          {project.tags?.length > 0 && (
+            <ul className="tags" aria-label="Tags">
+              {project.tags.map((tag) => <li key={tag}>{tag}</li>)}
+            </ul>
           )}
+
           {project.sourceUrl && (
-            <a className="vault-link" href={project.sourceUrl} target="_blank" rel="noreferrer" style={{ marginTop: 18 }}>
-              Open project <Icon name="external" size={13} />
+            <a className="btn btn--ink detail__source" href={project.sourceUrl} target="_blank" rel="noreferrer">
+              Open project <Icon name="external" size={15} />
             </a>
           )}
 
-          {project.tags?.length > 0 && (
-            <div className="inspect__tags">
-              {project.tags.map((tag) => <span key={tag}>{tag}</span>)}
-            </div>
-          )}
-
           {project.supportingImages?.length > 0 && (
-            <div className="inspect__support">
+            <div className="detail__support">
               {project.supportingImages.map((image) => <img key={image} src={image} alt="" loading="lazy" />)}
             </div>
           )}
 
-          <div className="inspect__actions">
-            <button className="vault-link" onClick={onEdit}><Icon name="edit" size={13} /> Edit the record</button>
-            <button className="vault-link vault-link--danger" onClick={onDelete}><Icon name="close" size={12} /> Remove</button>
+          <div className="detail__foot">
+            <div className="detail__pager">
+              <button type="button" className="icon-btn" disabled={!onPrevious} onClick={onPrevious} aria-label="Previous design">
+                <Icon name="arrowLeft" size={16} />
+              </button>
+              <button type="button" className="icon-btn" disabled={!onNext} onClick={onNext} aria-label="Next design">
+                <Icon name="arrowRight" size={16} />
+              </button>
+            </div>
+            <div className="detail__manage">
+              <button type="button" className="text-link text-link--small" onClick={onEdit}><Icon name="edit" size={13} /> Edit</button>
+              <button type="button" className="text-link text-link--small text-link--danger" onClick={onDelete}><Icon name="close" size={12} /> Remove</button>
+            </div>
           </div>
-
-          {/* adjacent wings */}
-          <div className="inspect__wings">
-            <button className="inspect__wing" disabled={!onPrevious} onClick={onPrevious}>
-              <span>← adjacent wing</span>
-              <small>{onPrevious ? 'Previous exhibit' : 'Start of the hallway'}</small>
-            </button>
-            <button className="inspect__wing" disabled={!onNext} onClick={onNext}>
-              <span>adjacent wing →</span>
-              <small>{onNext ? 'Next exhibit' : 'End of the hallway'}</small>
-            </button>
-          </div>
-        </aside>
+        </div>
       </div>
     </div>
   )
