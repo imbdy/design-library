@@ -61,7 +61,9 @@ export default function App() {
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY)
       const parsed = saved ? JSON.parse(saved) : null
-      return Array.isArray(parsed) ? parsed : seedProjects
+      if (!Array.isArray(parsed)) return seedProjects
+      const savedIds = new Set(parsed.map((project) => project.id))
+      return [...parsed, ...seedProjects.filter((project) => !savedIds.has(project.id))]
     } catch { return seedProjects }
   })
 

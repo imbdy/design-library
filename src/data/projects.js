@@ -26,6 +26,25 @@ export const categorySlug = (category) => category.toLowerCase().replace(/\s+/g,
 
 export const projects = [
   {
+    id: 'abdallah-portfolio',
+    title: 'Personal portfolio',
+    eyebrow: 'Portfolio site',
+    description:
+      'A cinematic portfolio for AI / ML engineering and UI/UX work, bringing liquid typography, glass surfaces, motion, and project storytelling into one focused experience.',
+    categories: ['Websites', 'Experiments'],
+    status: 'Published',
+    year: '2026',
+    role: 'Art direction · Interaction design · Frontend',
+    tools: ['HTML', 'CSS', 'JavaScript'],
+    tags: ['portfolio', 'motion', '3D', 'AI / ML'],
+    imageUrl: '/portfolio/preview.png',
+    body: [
+      'The portfolio is designed as a single, cinematic world rather than a collection of disconnected pages.',
+      'It combines a liquid hero, a live design-system playground, an agentic-loop visualization, and project case studies in a lightweight standalone experience.',
+    ],
+    sourceUrl: 'https://imbdy.dev',
+  },
+  {
     id: 'personal-design-library',
     title: 'Personal design library',
     eyebrow: 'The site itself',

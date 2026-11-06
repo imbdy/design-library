@@ -42,7 +42,15 @@ export default function AppFrame({ active, onNavigate, children }) {
   }, [])
 
   return (
-    <div className="shell">
+    <div
+      className="shell"
+      onContextMenu={(event) => {
+        if (event.target.closest('img')) event.preventDefault()
+      }}
+      onDragStart={(event) => {
+        if (event.target.closest('img')) event.preventDefault()
+      }}
+    >
       <a className="skip-link" href="#main-content">Skip to content</a>
 
       <header className={`nav ${scrolled ? 'is-scrolled' : ''}`}>
@@ -52,8 +60,7 @@ export default function AppFrame({ active, onNavigate, children }) {
           onClick={(event) => { event.preventDefault(); onNavigate('library') }}
         >
           <span className="nav__mark" aria-hidden="true">{profile.initials}</span>
-          <span className="nav__name">{profile.name}</span>
-          <span className="sr-only">, design library home</span>
+          <span className="sr-only">{profile.name}, design library home</span>
         </a>
         <span className="nav__divider" aria-hidden="true" />
         <nav className="nav__links" aria-label="Primary" ref={linksRef}>

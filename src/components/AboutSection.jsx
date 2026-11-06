@@ -7,6 +7,7 @@ import { profile } from '../data/profile'
  */
 export default function AboutSection({ onBackToLibrary }) {
   const links = profile.links.filter((link) => link.href)
+  const iconFor = { email: 'mail', linkedin: 'linkedin', github: 'github', source: 'code' }
 
   return (
     <section className="about" id="about" aria-labelledby="about-title">
@@ -39,7 +40,8 @@ export default function AboutSection({ onBackToLibrary }) {
                       href={link.href}
                       {...(external ? { target: '_blank', rel: 'noreferrer' } : {})}
                     >
-                      <span className="contact__label">{link.label}</span>
+                      <span className="contact__icon" title={link.label}><Icon name={iconFor[link.id] ?? 'link'} size={17} /></span>
+                      <span className="sr-only">{link.label}</span>
                       <span className="contact__value">{link.value}</span>
                       <Icon name={external ? 'arrowUpRight' : 'arrowRight'} size={15} />
                       {external && <span className="sr-only"> (opens in a new tab)</span>}
